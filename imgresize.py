@@ -1,26 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-###
-# File: /Users/simonliu/Documents/python/imgresize.py
-# Project: /Users/simonliu/Documents/python
-# Created Date: 2022-05-05 23:00:44
-# Author: Simon Liu
-# -----
-# Last Modified: 2022-05-10 17:19:42
-# Modified By: Simon Liu
-# -----
-# Copyright (c) 2022 SimonLiu Inc.
-# 
 # 将文件夹下的图片居中剪裁为指定比例并缩放到指定大小
-# -----
-# HISTORY:
-# Date      	By	Comments
-# ----------	---	----------------------------------------------------------
 ###
 
 from PIL import Image
 from pathlib import Path
-import time
 
 # 目标尺寸
 dst_w = 400
@@ -30,7 +14,6 @@ dst_h = 300
 # src_path = Path.home()/Path(src_dir)
 
 src_dir = input('请输入图片文件夹位置:')
-print('str(Path.home())',str(Path.home()))
 if src_dir[0]=='~':
     src_dir=src_dir.replace('~',str(Path.home()))
 print('输入的图片文件夹路径:',src_dir)    
@@ -46,13 +29,14 @@ filecount = 0
 display_each_line = 10
 
 def remove_ds_store(path):
-    print('检查 %s 内是否存在 .DS_Store 文件'%str(path))
+    # print('检查 %s 内是否存在 .DS_Store 文件'%str(path))
     target = path/'.DS_Store'
     if (target.exists()):
         Path.unlink(target)
         print(f'{target} 文件已自动删除。')
     else:
-        print(f'.DS_Store 文件不存在，继续操作。')
+        # print(f'.DS_Store 文件不存在，继续操作。')
+        pass
     
 def resize_dir_images(src_path):
     global filecount
@@ -74,19 +58,23 @@ def crop_and_resize(fp):
 
     if src_scale >= dst_scale:
         #过高
+        # print("原图过高")
         width = src_w
         height = int(width*dst_scale)
         x = 0
-        y = (src_h - height) / 3
+        y = (src_h - height) / 2
+
     else:
         #过宽
+        # print("原图过宽\n")
         height = src_h
-        width = int(height*dst_scale)
+        width = int(height/dst_scale)
         x = (src_w - width) / 2
         y = 0
         
     #裁剪
     box = (x,y,width+x,height+y)
+    
     #这里的参数可以这么认为：从某图的(x,y)坐标开始截，截到(width+x,height+y)坐标
     newIm = im.crop(box)
     im = None
@@ -94,7 +82,9 @@ def crop_and_resize(fp):
     ratio = float(dst_w) / width
     newWidth = int(width * ratio)
     newHeight = int(height * ratio)
-    dst_file = dst_path/fp.name
+    # dst_file = dst_path/fp.name  # 保持原文件名
+    dst_file = dst_path/f'{fp.stem}_{dst_w}x{dst_h}{fp.suffix}' # 文件名添加新尺寸
+    
     newIm.resize((newWidth,newHeight),Image.Resampling.LANCZOS).save(dst_file,quality=100)
 
 def main():
@@ -107,7 +97,6 @@ def main():
     else:
         print(f'创建目标文件夹: {dst_path} ')
         dst_path.mkdir(exist_ok=True, parents=True)
-    time.sleep(1)
     print(f'目标分辨率:{dst_w}x{dst_h}')
     resize_dir_images(src_path)
     remove_ds_store(dst_path)
