@@ -5,28 +5,12 @@
 
 from PIL import Image
 from pathlib import Path
+import sys
 
 # 目标尺寸
-dst_w = 400
-dst_h = 300
+dst_w = 224
+dst_h = 224
 
-# src_dir = 'Pictures/cat_data'
-# src_path = Path.home()/Path(src_dir)
-
-src_dir = input('请输入图片文件夹位置:')
-if src_dir[0]=='~':
-    src_dir=src_dir.replace('~',str(Path.home()))
-print('输入的图片文件夹路径:',src_dir)    
-src_path = Path(src_dir)
-
-if(not src_path.exists()):
-    print(f'文件夹{dir}不存在，请检查输入的文件夹名称是否正确。')
-
-dst_dir = f'{src_path}_{dst_w}x{dst_h}'
-dst_path = Path(dst_dir)
-filecount = 0
-# 此参数规定了最后文件列表每行显示的文件名数量。
-display_each_line = 10
 
 def remove_ds_store(path):
     # print('检查 %s 内是否存在 .DS_Store 文件'%str(path))
@@ -87,16 +71,38 @@ def crop_and_resize(fp):
     
     newIm.resize((newWidth,newHeight),Image.Resampling.LANCZOS).save(dst_file,quality=100)
 
+def get_src_path():
+    src_dir = input('请输入图片文件夹位置(输入Q或q退出):')
+    if src_dir == "Q" or src_dir == 'q':
+        sys.exit()
+    src_path = Path(src_dir)
+    src_path = src_path.expanduser()
+    print("输入的文件夹：",src_path)
+    return src_path
+
 def main():
     global src_path,dst_path,filecount
+    src_path = get_src_path()
+
+    while (not src_path.exists()):
+        print(f'文件夹{src_path}不存在，请检查输入的文件夹名称是否正确。')
+        src_path = get_src_path()
+
+    dst_dir = f'{src_path}_{dst_w}x{dst_h}'
+    dst_path = Path(dst_dir)
+    filecount = 0
+    # 此参数规定了最后文件列表每行显示的文件名数量。
+    display_each_line = 10
+
     cnt = 0
-    print('原始图片文件夹:',src_path)
+    # print('原始图片文件夹:',src_path)
     print('目标文件夹:',dst_path)
     if dst_path.exists():
         print(f'目标文件夹 {dst_path} 已经存在...')
+        pass
     else:
-        print(f'创建目标文件夹: {dst_path} ')
-        dst_path.mkdir(exist_ok=True, parents=True)
+        # print(f'创建目标文件夹: {dst_path} ')
+        dst_path.mkdir(parents=True)
     print(f'目标分辨率:{dst_w}x{dst_h}')
     resize_dir_images(src_path)
     remove_ds_store(dst_path)
